@@ -25,10 +25,12 @@ var coordinates = geocode.geocodeAddress(argv.address, (errorMessage, addressRes
       if (errorMessage) {
         console.log(errorMessage);
       } else {
+        const temperatureUnit = weatherResults.temperatureUnit === 'us' ? 'F' : 'C';
+
         if (weatherResults.temperature === weatherResults.apparentTemperature) {
-          console.log(`It is currently ${weatherResults.temperature}.`);
+          console.log(`It is currently ${weatherResults.temperature}${temperatureUnit}.`);
         } else {
-          console.log(`It is currently ${weatherResults.temperature}, but it feels like  ${weatherResults.apparentTemperature}.`);
+          console.log(`It is currently ${weatherResults.temperature}${temperatureUnit}, but it feels like ${weatherResults.apparentTemperature}${temperatureUnit}.`);
         }
       }
     });
