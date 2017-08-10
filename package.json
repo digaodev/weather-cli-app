@@ -1,0 +1,15 @@
+{
+  "name": "weather-cli-app",
+  "version": "1.0.0",
+  "description": "Simple CLI weather app in node.js",
+  "main": "app.js",
+  "dependencies": {
+    "request": "^2.81.0",
+    "yargs": "^8.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
