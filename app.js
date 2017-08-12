@@ -17,14 +17,10 @@ const argv = yargs
   .alias('help', 'h')
   .argv;
 
-var coordinates = geocode.geocodeAddress(argv.address, (errorMessage, addressResults) => {
-  if (errorMessage) {
-    console.log(errorMessage);
-  } else {
-    weather.getWeather(addressResults.latitude, addressResults.longitude, (errorMessage, weatherResults) => {
-      if (errorMessage) {
-        console.log(errorMessage);
-      } else {
+geocode.geocodeAddress(argv.address)
+  .then((addressResults) => {
+    weather.getWeather(addressResults.latitude, addressResults.longitude)
+      .then((weatherResults) => {
         const temperatureUnit = weatherResults.temperatureUnit === 'us' ? 'F' : 'C';
 
         if (weatherResults.temperature === weatherResults.apparentTemperature) {
@@ -32,7 +28,11 @@ var coordinates = geocode.geocodeAddress(argv.address, (errorMessage, addressRes
         } else {
           console.log(`It is currently ${weatherResults.temperature}${temperatureUnit}, but it feels like ${weatherResults.apparentTemperature}${temperatureUnit}.`);
         }
-      }
-    });
-  }
-});
+      })
+      .catch((errorMessage) => {
+        console.log(errorMessage);
+      });
+  })
+  .catch((errorMessage) => {
+    console.log(errorMessage);
+  });
