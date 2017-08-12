@@ -1,8 +1,6 @@
-const yargs = require('yargs');
 require('dotenv').config();
-
-const geocode = require('./geocode/geocode');
-const weather = require('./weather/weather');
+const yargs = require('yargs');
+const axios = require('axios');
 
 const argv = yargs
   .options({
@@ -17,22 +15,43 @@ const argv = yargs
   .alias('help', 'h')
   .argv;
 
-geocode.geocodeAddress(argv.address)
-  .then((addressResults) => {
-    weather.getWeather(addressResults.latitude, addressResults.longitude)
-      .then((weatherResults) => {
-        const temperatureUnit = weatherResults.temperatureUnit === 'us' ? 'F' : 'C';
+const encodedAddress = encodeURIComponent(argv.address);
+const queryParameter = `address=${encodedAddress}`;
+const geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?${queryParameter}`;
 
-        if (weatherResults.temperature === weatherResults.apparentTemperature) {
-          console.log(`It is currently ${weatherResults.temperature}${temperatureUnit}.`);
-        } else {
-          console.log(`It is currently ${weatherResults.temperature}${temperatureUnit}, but it feels like ${weatherResults.apparentTemperature}${temperatureUnit}.`);
-        }
-      })
-      .catch((errorMessage) => {
-        console.log(errorMessage);
-      });
+axios.get(geocodeURL)
+  .then((response) => {
+    if (response.data.status === 'ZERO_RESULTS') {
+      throw new Error('Unable to find the specified address.');
+    } else {
+      let lat = response.data.results[0].geometry.location.lat;
+      let lng = response.data.results[0].geometry.location.lng;
+      console.log(response.data.results[0].formatted_address);
+
+      const weatherURL = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API_KEY}/${lat},${lng}?&units=auto`;
+
+      axios.get(weatherURL)
+        .then((response) => {
+          let temperature = response.data.currently.temperature;
+          let apparentTemperature = response.data.currently.apparentTemperature;
+          let temperatureUnit = response.data.flags.units === 'us' ? 'F' : 'C';
+
+          if (temperature === apparentTemperature) {
+            console.log(`It is currently ${temperature}${temperatureUnit}.`);
+          } else {
+            console.log(`It is currently ${temperature}${temperatureUnit}, but it feels like ${apparentTemperature}${temperatureUnit}.`);
+          }
+        })
+        .catch((error) => {
+          throw new Error('Unable to get the weather for that region.');
+        });
+    }
   })
-  .catch((errorMessage) => {
-    console.log(errorMessage);
+  .catch((error) => {
+    if (error.code === 'ENOTFOUND') {
+      console.log('Unable to connect to Google services.');
+    } else {
+      console.log(error.message);
+    }
+
   });

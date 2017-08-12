@@ -4,6 +4,7 @@
   "description": "Simple CLI weather app in node.js",
   "main": "app.js",
   "dependencies": {
+    "axios": "^0.16.2",
     "dotenv": "^4.0.0",
     "request": "^2.81.0",
     "yargs": "^8.0.2"
